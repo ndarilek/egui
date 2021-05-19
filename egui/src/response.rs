@@ -65,6 +65,8 @@ pub struct Response {
     /// e.g. the slider was dragged, text was entered in a `TextEdit` etc.
     /// Always `false` for something like a `Button`.
     pub(crate) changed: bool,
+    /// Has a `WidgetInfo` but isn't covered by some other case (E.g. `changed`, `clicked`.)
+    pub(crate) has_widget_info: bool,
 }
 
 impl std::fmt::Debug for Response {
@@ -84,6 +86,7 @@ impl std::fmt::Debug for Response {
             is_pointer_button_down_on,
             interact_pointer_pos,
             changed,
+            has_widget_info: _,
         } = self;
         f.debug_struct("Response")
             .field("layer_id", layer_id)
@@ -437,6 +440,13 @@ impl Response {
             Some(OutputEvent::FocusGained(make_info()))
         } else if self.changed {
             Some(OutputEvent::ValueChanged(make_info()))
+        } else if self.has_widget_info {
+            let info = make_info();
+            if info.text_selection.is_some() {
+                Some(OutputEvent::TextSelectionChanged(info))
+            } else {
+                None
+            }
         } else {
             None
         };
@@ -479,6 +489,7 @@ impl Response {
                 || other.is_pointer_button_down_on,
             interact_pointer_pos: self.interact_pointer_pos.or(other.interact_pointer_pos),
             changed: self.changed || other.changed,
+            has_widget_info: self.has_widget_info || other.has_widget_info,
         }
     }
 }

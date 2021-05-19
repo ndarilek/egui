@@ -1,4 +1,4 @@
-use crate::{output::OutputEvent, util::undoer::Undoer, *};
+use crate::{util::undoer::Undoer, *};
 use epaint::{text::cursor::*, *};
 
 #[derive(Clone, Debug, Default)]
@@ -663,14 +663,13 @@ impl<'t> TextEdit<'t> {
         if response.changed {
             response.widget_info(|| WidgetInfo::text_edit(&*prev_text, &*text));
         } else if let Some(text_cursor) = text_cursor {
-            let char_range =
-                text_cursor.primary.ccursor.index..=text_cursor.secondary.ccursor.index;
-            let info = WidgetInfo::text_selection_changed(char_range, &*text);
-            response
-                .ctx
-                .output()
-                .events
-                .push(OutputEvent::TextSelectionChanged(info));
+            response.has_widget_info = true;
+            response.has_widget_info = true;
+            response.widget_info(|| {
+                let char_range =
+                    text_cursor.primary.ccursor.index..=text_cursor.secondary.ccursor.index;
+                WidgetInfo::text_selection_changed(char_range, &*text)
+            });
         }
         response
     }
